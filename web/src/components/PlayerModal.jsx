@@ -230,6 +230,15 @@ export default function PlayerModal({ id, type: rawType, initialSeason, initialE
     }
   };
 
+  // Detecta se está rodando dentro do APK Android
+  const isAndroid = typeof window !== 'undefined' && !!window.AndroidPlayer;
+
+  // Quando no Android: abre na PlayerActivity blindada em vez de iframe
+  useEffect(() => {
+    if (!isAndroid || !playerUrl || isTrailer || type === 'channel') return;
+    window.AndroidPlayer.openPlayer(playerUrl);
+  }, [playerUrl, isAndroid, isTrailer, type]);
+
   const handleClose = () => {
     onClose();
     if (onPlayerClose) {
@@ -313,16 +322,30 @@ export default function PlayerModal({ id, type: rawType, initialSeason, initialE
           />
         ) : (
           playerUrl && (
-            <iframe
-              src={playerUrl}
-              title="Player de Vídeo"
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              scrolling="no"
-              allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *;"
-              className="w-full h-full"
-            />
+            isAndroid ? (
+              // No Android: o player abre na PlayerActivity nativa blindada
+              // Aqui só mostra uma tela de espera (o vídeo toca em cima)
+              <div className="w-full h-full flex flex-col items-center justify-center bg-black text-white gap-4">
+                <div className="w-16 h-16 rounded-full bg-[#E50914]/20 flex items-center justify-center animate-pulse">
+                  <svg className="w-8 h-8 text-[#E50914]" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </div>
+                <p className="text-zinc-400 text-sm font-semibold">Abrindo player...</p>
+                <p className="text-zinc-600 text-xs">Pressione Voltar para fechar</p>
+              </div>
+            ) : (
+              <iframe
+                src={playerUrl}
+                title="Player de Vídeo"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *;"
+                className="w-full h-full"
+              />
+            )
           )
         )}
       </div>

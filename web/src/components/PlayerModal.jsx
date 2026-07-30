@@ -10,33 +10,15 @@ function getSeriesSlug(itemData) {
   return name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
 }
 
+// Apenas 2 provedores — viewplayer para filmes, autoembedhd para séries/animes
 const PLAYER_APIS = {
   viewplayer: {
     movie: (id, imdbId) => `https://viewplayer.online/filme/${imdbId || id}`,
-    tv: (id, s, e, imdbId, itemData) => {
-      const slug = getSeriesSlug(itemData);
-      return slug ? `https://viewplayer.online/embed/${slug}/` : `https://autoembed.co/tv/tmdb/${id}-${s}-${e}`;
-    }
+    tv: (id, s, e) => `https://autoembed.co/tv/tmdb/${id}-${s}-${e}`
   },
   autoembed: {
     movie: (id) => `https://autoembed.co/movie/tmdb/${id}`,
     tv: (id, s, e) => `https://autoembed.co/tv/tmdb/${id}-${s}-${e}`
-  },
-  vidsrcme: {
-    movie: (id, imdbId) => `https://vidsrcme.ru/embed/movie?imdb=${imdbId || id}`,
-    tv: (id, s, e, imdbId) => `https://vidsrcme.ru/embed/tv?imdb=${imdbId || id}&season=${s}&episode=${e}`
-  },
-  warezcdn: {
-    movie: (id) => `https://warezcdn.site/filme/${id}`,
-    tv: (id, s, e) => `https://warezcdn.site/serie/${id}/${s}/${e}`
-  },
-  embedmovies: {
-    movie: (id) => `https://myembed.biz/filme/${id}`,
-    tv: (id, s, e) => `https://myembed.biz/serie/${id}/${s}/${e}`
-  },
-  vidsrc: {
-    movie: (id) => `https://vidsrc.cc/v2/embed/movie/${id}`,
-    tv: (id, s, e) => `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`
   }
 };
 
@@ -250,40 +232,14 @@ export default function PlayerModal({ id, type: rawType, initialSeason, initialE
     <div className="fixed inset-0 z-[120] bg-black flex flex-col select-none overflow-hidden animate-fade-in">
       {/* Controls Overlay Header */}
       <div className="absolute top-4 left-4 z-40 flex items-center space-x-3 pointer-events-auto">
-        <button 
-          onClick={handleClose} 
+        <button
+          onClick={handleClose}
           className="text-white bg-zinc-950/80 hover:bg-zinc-800/80 rounded-full p-3 shadow-2xl border border-zinc-800/40 backdrop-blur-sm cursor-pointer"
           aria-label="Fechar player"
+          tabIndex={0}
         >
           <X className="w-6 h-6" />
         </button>
-
-        {/* Server select dropdown */}
-        {type !== 'channel' && !isTrailer && (
-          <select 
-            value={server} 
-            onChange={(e) => setServer(e.target.value)}
-            className="bg-zinc-950/80 text-white text-sm font-bold py-3 px-4 rounded-xl border border-zinc-800/40 hover:bg-zinc-900/80 focus:outline-none focus:ring-2 focus:ring-[#E50914] cursor-pointer shadow-2xl backdrop-blur-sm"
-          >
-            {type === 'movie' ? (
-              <>
-                <option value="viewplayer">🎬 Servidor 1: ViewPlayer (Padrão Filmes)</option>
-                <option value="autoembed">🌐 Servidor 2: AutoEmbed HD</option>
-                <option value="warezcdn">🇧🇷 Servidor 3: Warez (Dublado PT-BR)</option>
-                <option value="vidsrcme">🇺🇸 Servidor 4: VidSrc HD</option>
-                <option value="embedmovies">🇧🇷 Servidor 5: EmbedMovies (Dublado)</option>
-              </>
-            ) : (
-              <>
-                <option value="autoembed">📺 Servidor 1: AutoEmbed HD (Padrão Séries)</option>
-                <option value="warezcdn">🇧🇷 Servidor 2: Warez (Dublado PT-BR)</option>
-                <option value="vidsrcme">🇺🇸 Servidor 3: VidSrc HD (Legendado)</option>
-                <option value="embedmovies">🇧🇷 Servidor 4: EmbedMovies (Dublado)</option>
-                <option value="vidsrc">🌐 Servidor 5: VidSrc CC</option>
-              </>
-            )}
-          </select>
-        )}
       </div>
 
       {/* TV Playback Control Buttons */}

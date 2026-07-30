@@ -1,8 +1,8 @@
 // API TMDB
 const API_KEY = '04c35731a5ee918f014970082a0088b1';
 const API_BASE_URL = 'https://api.themoviedb.org/3';
-const IMG_BASE_URL = 'https://image.tmdb.org/t/p/original';
-const IMG_POSTER_URL = 'https://image.tmdb.org/t/p/w500';
+const IMG_BASE_URL = 'https://image.tmdb.org/t/p/w1280'; // era 'original' — reduzido pra poupar RAM/banda
+const IMG_POSTER_URL = 'https://image.tmdb.org/t/p/w300'; // era 'w500' — posters menores, carrega mais rápido
 
 /**
  * Busca dados da API do TMDB.

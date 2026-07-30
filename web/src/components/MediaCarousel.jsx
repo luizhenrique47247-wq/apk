@@ -49,11 +49,12 @@ export default function MediaCarousel({ title, items, onClickItem, isTop10 }) {
       </h2>
 
       <div className="carousel-wrapper-relative">
-        {/* Left Arrow Button */}
+        {/* Left Arrow — sempre visível para D-pad */}
         {showLeftArrow && (
           <button
             onClick={() => scroll(-1)}
-            className="carousel-arrow carousel-arrow-left absolute left-0 z-30 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white border-0 cursor-pointer h-full transition-opacity duration-300 opacity-0 group-hover/row:opacity-100"
+            tabIndex={0}
+            className="carousel-arrow carousel-arrow-left absolute left-0 z-30 flex items-center justify-center bg-black/60 hover:bg-black/90 focus:bg-black/90 text-white border-0 cursor-pointer h-full focus:outline-none focus:ring-2 focus:ring-[#E50914]"
             aria-label="Rolar para esquerda"
           >
             <ChevronLeft className="w-8 h-8 md:w-10 md:h-10 text-white" />
@@ -148,11 +149,12 @@ export default function MediaCarousel({ title, items, onClickItem, isTop10 }) {
           })}
         </div>
 
-        {/* Right Arrow Button */}
+        {/* Right Arrow — sempre visível para D-pad */}
         {showRightArrow && (
           <button
             onClick={() => scroll(1)}
-            className="carousel-arrow carousel-arrow-right absolute right-0 z-30 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white border-0 cursor-pointer h-full transition-opacity duration-300 opacity-0 group-hover/row:opacity-100"
+            tabIndex={0}
+            className="carousel-arrow carousel-arrow-right absolute right-0 z-30 flex items-center justify-center bg-black/60 hover:bg-black/90 focus:bg-black/90 text-white border-0 cursor-pointer h-full focus:outline-none focus:ring-2 focus:ring-[#E50914]"
             aria-label="Rolar para direita"
           >
             <ChevronRight className="w-8 h-8 md:w-10 md:h-10 text-white" />

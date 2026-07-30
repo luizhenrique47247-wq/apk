@@ -5,94 +5,96 @@ import { fetchTMDB } from '../services/api';
 import { categories } from '../services/config';
 import * as Storage from '../services/storageService';
 
+/**
+ * Carrega os carrosséis em sequência com delay entre cada um.
+ * Evita bombardear o processador fraco do projetor com 14 requisições ao mesmo tempo.
+ */
 export default function Home({ onSelectMedia }) {
   const [heroItem, setHeroItem] = useState(null);
   const [rowsData, setRowsData] = useState({});
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadHomeData = async () => {
-      setLoading(true);
-      try {
-        // Fetch Hero item (from trending)
-        const trending = await fetchTMDB('/trending/all/day');
-        if (trending && trending.results?.length > 0) {
-          const playable = trending.results.filter(item => item.backdrop_path && item.overview);
-          if (playable.length > 0) {
-            // Select a random featured item
-            const randomItem = playable[Math.floor(Math.random() * playable.length)];
-            setHeroItem(randomItem);
-          } else {
-            setHeroItem(trending.results[0]);
+    let cancelled = false;
+
+    const loadSequentially = async () => {
+      // 1. Carrega o Hero primeiro
+      const trending = await fetchTMDB('/trending/all/day');
+      if (cancelled) return;
+
+      if (trending?.results?.length > 0) {
+        const playable = trending.results.filter(i => i.backdrop_path && i.overview);
+        const hero = playable[Math.floor(Math.random() * playable.length)] || trending.results[0];
+        setHeroItem(hero);
+        // Adiciona trending como primeira linha também
+        setRowsData(prev => ({ ...prev, 'Em Alta Hoje': trending.results }));
+      }
+
+      // 2. Carrega histórico local (instantâneo, sem rede)
+      const history = Storage.getWatchedHistory();
+      if (history.length > 0) {
+        setRowsData(prev => ({ ...prev, 'Últimos Assistidos': history }));
+      }
+
+      // 3. Carrega restante das categorias uma por uma com delay
+      const apiCategories = categories.default.filter(
+        cat => cat.endpoint !== 'localstorage' && cat.title !== 'Em Alta Hoje'
+      );
+
+      for (const cat of apiCategories) {
+        if (cancelled) break;
+        try {
+          const data = await fetchTMDB(cat.endpoint);
+          if (!cancelled && data?.results) {
+            setRowsData(prev => ({ ...prev, [cat.title]: data.results }));
           }
-        }
-
-        // Fetch categories rows
-        const fetchedRows = {};
-        
-        // Load "Últimos Assistidos" locally
-        fetchedRows["Últimos Assistidos"] = Storage.getWatchedHistory();
-
-        // Query TMDB APIs in parallel for each row
-        const apiCategories = categories.default.filter(cat => cat.endpoint !== 'localstorage');
-        const promises = apiCategories.map(cat => fetchTMDB(cat.endpoint));
-        const results = await Promise.all(promises);
-
-        apiCategories.forEach((cat, index) => {
-          fetchedRows[cat.title] = results[index]?.results || [];
-        });
-
-        setRowsData(fetchedRows);
-      } catch (error) {
-        console.error("Erro ao carregar dados da Home:", error);
-      } finally {
-        setLoading(false);
+        } catch { /* ignora erros individuais */ }
+        // Delay entre cada chamada para não sobrecarregar o projetor
+        await new Promise(r => setTimeout(r, 150));
       }
     };
 
-    loadHomeData();
+    loadSequentially();
+    return () => { cancelled = true; };
   }, []);
 
+  const orderedRows = [
+    'Em Alta Hoje',
+    'Últimos Assistidos',
+    ...categories.default
+      .filter(c => c.endpoint !== 'localstorage' && c.title !== 'Em Alta Hoje')
+      .map(c => c.title)
+  ];
+
   return (
-    <div className="route-transition select-none">
-      {/* Cinematic Hero Highlight */}
-      <Hero 
-        item={heroItem} 
+    <div className="select-none">
+      <Hero
+        item={heroItem}
         onPlay={(id, type, data) => onSelectMedia(id, type, 'play', data)}
         onInfo={(id, type) => onSelectMedia(id, type, 'info')}
       />
 
-      {/* Carousels Rows container */}
       <div className="-mt-20 md:-mt-24 relative z-20 pb-20 space-y-6 md:space-y-8">
-        
-        {/* Render "Top 10 no Brasil Hoje" first */}
+        {/* Top 10 da primeira linha (trending) */}
         <MediaCarousel
           title="Top 10 no Brasil Hoje"
           isTop10={true}
-          items={rowsData["Em Alta Hoje"] || []}
+          items={rowsData['Em Alta Hoje'] || []}
           onClickItem={(id, type) => onSelectMedia(id, type, 'info')}
         />
 
-        {/* Render "Últimos Assistidos" second if has items */}
-        {rowsData["Últimos Assistidos"] && rowsData["Últimos Assistidos"].length > 0 && (
-          <MediaCarousel
-            title="Últimos Assistidos"
-            items={rowsData["Últimos Assistidos"]}
-            onClickItem={(id, type) => onSelectMedia(id, type, 'info')}
-          />
-        )}
-
-        {/* Map other rows */}
-        {categories.default
-          .filter(cat => cat.title !== "Últimos Assistidos" && cat.title !== "Em Alta Hoje")
-          .map(cat => (
+        {/* Demais linhas na ordem definida */}
+        {orderedRows.slice(1).map(title => {
+          const items = rowsData[title];
+          if (!items || items.length === 0) return null;
+          return (
             <MediaCarousel
-              key={cat.title}
-              title={cat.title}
-              items={rowsData[cat.title] || []}
+              key={title}
+              title={title}
+              items={items}
               onClickItem={(id, type) => onSelectMedia(id, type, 'info')}
             />
-          ))}
+          );
+        })}
       </div>
     </div>
   );

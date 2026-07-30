@@ -1,558 +1,103 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, UserCircle, Menu, X, Trash2, History, LogOut, Dices, Eye, Users, Puzzle } from 'lucide-react';
-import * as Storage from '../services/storageService';
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, X } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab, onSearch, onClearList, onClearHistory, onLogout, activeProfile, onChangeProfile, openDetails }) {
+const TABS = [
+  { id: 'inicio', label: 'Início' },
+  { id: 'movie', label: 'Filmes' },
+  { id: 'tv', label: 'Séries' },
+  { id: 'anime', label: 'Animes' },
+];
+
+export default function Navbar({ activeTab, setActiveTab, onSearch, openDetails }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [inbox, setInbox] = useState([]);
-  const [toastMessage, setToastMessage] = useState('');
-  const [showToast, setShowToast] = useState(false);
-
   const searchInputRef = useRef(null);
-  const profileRef = useRef(null);
-  const notificationsRef = useRef(null);
-  const toastTimeoutRef = useRef(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-
-    // Initial 1x Daily notifications check
-    let currentInbox = Storage.getInbox();
-    const todayStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-    const lastNotifDate = localStorage.getItem('fudidoFlixLastNotifDate');
-
-    // On a new calendar day, generate fresh daily notifications once per day!
-    if (lastNotifDate !== todayStr) {
-      Storage.clearInbox();
-      const myList = Storage.getMyList();
-      const defaultNotifications = [
-        {
-          uniqueId: `notif_1_${todayStr}`,
-          id: 634649,
-          type: 'movie',
-          tag: 'Novo Lançamento',
-          badgeColor: 'bg-[#E50914]',
-          title: 'Homem-Aranha: Sem Volta Para Casa',
-          subtitle: 'Filme • Lançamento em Destaque',
-          timeAgo: 'Há 1 hora',
-          image: 'https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg'
-        },
-        {
-          uniqueId: `notif_2_${todayStr}`,
-          id: 66732,
-          type: 'tv',
-          tag: 'Novo Episódio',
-          badgeColor: 'bg-[#E50914]',
-          title: 'Stranger Things (Nova Temporada)',
-          subtitle: 'Série • Novos episódios disponíveis',
-          timeAgo: 'Há 3 horas',
-          image: 'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg'
-        },
-        {
-          uniqueId: `notif_3_${todayStr}`,
-          id: 85937,
-          type: 'tv',
-          tag: 'Em Alta #1',
-          badgeColor: 'bg-emerald-600',
-          title: 'Demon Slayer: Kimetsu no Yaiba',
-          subtitle: 'Anime • Destaque no Brasil Hoje',
-          timeAgo: 'Hoje',
-          image: 'https://image.tmdb.org/t/p/w500/39wmItxPhfi1y0f7A32d3ipZ2v.jpg'
-        }
-      ];
-
-      if (myList && myList.length > 0) {
-        myList.slice(0, 2).forEach(item => {
-          if (item && item.id && item.poster_path) {
-            defaultNotifications.unshift({
-              uniqueId: `notif_list_${item.id}_${todayStr}`,
-              id: item.id,
-              type: item.type || item.media_type || (item.title ? 'movie' : 'tv'),
-              tag: 'Da sua Lista',
-              badgeColor: 'bg-blue-600',
-              title: item.title || item.name,
-              subtitle: 'Novo conteúdo disponível na sua lista',
-              timeAgo: 'Hoje',
-              image: `https://image.tmdb.org/t/p/w500${item.poster_path}`
-            });
-          }
-        });
-      }
-
-      defaultNotifications.forEach(n => Storage.saveToInbox(n));
-      localStorage.setItem('fudidoFlixLastNotifDate', todayStr);
-      currentInbox = Storage.getInbox();
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
     }
+  }, [searchOpen]);
 
-    setInbox(currentInbox);
-
-    if (currentInbox.length > 0) {
-      triggerToast(currentInbox.length);
-    }
-
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setProfileOpen(false);
-      }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
-        setNotificationsOpen(false);
-      }
-    };
-    window.addEventListener('click', handleClickOutside);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('click', handleClickOutside);
-      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    };
-  }, []);
-
-  // Update inbox state on local storage changes
-  const refreshInbox = () => {
-    setInbox(Storage.getInbox());
-  };
-
-  const triggerToast = (count) => {
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    const msg = count === 1 
-      ? "Você tem 1 novidade! Confira no sino." 
-      : `Você tem ${count} novidades! Confira no sino.`;
-    setToastMessage(msg);
-    setShowToast(true);
-    toastTimeoutRef.current = setTimeout(() => {
-      setShowToast(false);
-    }, 5000);
-  };
-
-  const handleSearchClick = () => {
-    if (!searchOpen) {
-      setSearchOpen(true);
-      setTimeout(() => searchInputRef.current?.focus(), 100);
-    } else if (searchQuery.trim()) {
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
       onSearch(searchQuery.trim());
       setSearchOpen(false);
       setSearchQuery('');
-    } else {
-      setSearchOpen(false);
     }
   };
-
-  const handleSearchKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (searchQuery.trim()) {
-        onSearch(searchQuery.trim());
-        setSearchOpen(false);
-        setSearchQuery('');
-      }
-    }
-  };
-
-  const handleNotificationItemClick = (e, item) => {
-    e.preventDefault();
-    if (item.uniqueId) {
-      Storage.removeFromInbox(item.uniqueId);
-      refreshInbox();
-    }
-    const mediaId = item.id || item.seriesId;
-    const mediaType = item.type || item.media_type || (item.seriesId ? 'tv' : 'movie');
-    if (openDetails && mediaId) {
-      openDetails(mediaId, mediaType);
-    }
-    setNotificationsOpen(false);
-  };
-
-  const handleClearNotification = (e, uniqueId) => {
-    e.stopPropagation();
-    Storage.removeFromInbox(uniqueId);
-    refreshInbox();
-  };
-
-  const handleClearAllNotifications = () => {
-    Storage.clearInbox();
-    refreshInbox();
-  };
-
-  // Nav items configuration
-  const navItems = [
-    { id: 'inicio', name: 'Início' },
-    { id: 'tv', name: 'Séries' },
-    { id: 'movie', name: 'Filmes' },
-    { id: 'anime', name: 'Animes' },
-    { id: 'minha-lista', name: 'Minha lista' },
-    { id: 'sorte', name: 'Sorte', icon: <Dices className="w-4 h-4 mr-1 inline-block" /> },
-    { 
-      id: 'ao-vivo', 
-      name: 'Ao Vivo', 
-      icon: <span className="w-2 h-2 rounded-full bg-red-600 mr-1.5 animate-pulse inline-block"></span> 
-    }
-  ];
 
   return (
-    <>
-      <header 
-        className={`fixed top-0 left-0 right-0 z-50 px-4 md:px-16 py-4 flex justify-between items-center transition-all duration-300 ${
-          scrolled ? 'bg-zinc-950/85 backdrop-blur-md shadow-lg border-b border-zinc-800/30' : 'bg-transparent'
-        }`}
-      >
-        {/* Left Side: Logo */}
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/60 shadow-xl">
+      <div className="flex items-center justify-between px-4 md:px-10 h-16">
+
+        {/* Logo */}
+        <span className="text-[#E50914] font-black text-xl tracking-widest uppercase flex-shrink-0">
+          FUDIDOFLIX
+        </span>
+
+        {/* Abas — centro */}
+        <div className="flex items-center gap-1 md:gap-2">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              tabIndex={0}
+              className={`
+                px-4 py-2 rounded-lg font-bold text-sm md:text-base transition-all duration-150
+                focus:outline-none focus:ring-2 focus:ring-[#E50914] focus:ring-offset-1 focus:ring-offset-zinc-950
+                ${activeTab === tab.id
+                  ? 'bg-[#E50914] text-white shadow-lg shadow-red-900/30'
+                  : 'text-zinc-300 hover:text-white hover:bg-zinc-800 focus:text-white focus:bg-zinc-800'
+                }
+              `}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Busca */}
         <div className="flex items-center">
-          <h1 
-            onClick={() => setActiveTab('inicio')} 
-            className="text-2xl md:text-3xl font-black text-[#E50914] cursor-pointer tracking-wider hover:brightness-110 transition-all select-none"
-          >
-            FUDIDOFLIX
-          </h1>
-        </div>
-
-        {/* Center: Main Tabs Navigation (Desktop) */}
-        <nav className="hidden xl:flex absolute left-1/2 -translate-x-1/2 items-center space-x-1 bg-zinc-900/30 p-1 rounded-full border border-zinc-800/20 backdrop-blur-sm">
-          {navItems.map(item => {
-            const isActive = activeTab === item.id;
-            return (
+          {searchOpen ? (
+            <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Buscar..."
+                className="bg-zinc-800 text-white placeholder-zinc-500 text-sm px-4 py-2 rounded-lg border border-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#E50914] w-40 md:w-56"
+              />
               <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`font-semibold text-sm px-4 py-2 rounded-full transition-all duration-300 ${
-                  isActive 
-                    ? 'bg-white text-black font-extrabold shadow-md scale-105' 
-                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900/40'
-                }`}
+                type="submit"
+                tabIndex={0}
+                className="p-2 rounded-lg bg-[#E50914] text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-white"
               >
-                {item.icon}
-                {item.name}
+                <Search className="w-4 h-4" />
               </button>
-            );
-          })}
-        </nav>
-
-        {/* Right Side: Search and Controls */}
-        <div className="flex items-center space-x-4">
-          {/* Expandable Search Input */}
-          <div className="relative flex items-center">
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="Títulos, atores, gêneros"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              onBlur={() => {
-                if (!searchQuery) setSearchOpen(false);
-              }}
-              className={`bg-zinc-950/80 border border-zinc-800 text-white text-sm rounded-full py-1.5 px-4 focus:outline-none focus:border-white placeholder-zinc-500 transition-all duration-300 ${
-                searchOpen ? 'w-28 md:w-44 opacity-100' : 'w-0 opacity-0 pointer-events-none'
-              }`}
-            />
-            <button 
-              onClick={handleSearchClick}
-              className="p-1 text-zinc-300 hover:text-white transition-colors focus:outline-none"
+              <button
+                type="button"
+                onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                tabIndex={0}
+                className="p-2 rounded-lg text-zinc-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#E50914]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </form>
+          ) : (
+            <button
+              onClick={() => setSearchOpen(true)}
+              tabIndex={0}
               aria-label="Buscar"
+              className="p-2 rounded-lg text-zinc-400 hover:text-white focus:text-white focus:outline-none focus:ring-2 focus:ring-[#E50914] transition-colors"
             >
-              <Search className="w-6 h-6 stroke-[2.5]" />
+              <Search className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Notifications bell */}
-          <div className="relative" ref={notificationsRef}>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setNotificationsOpen(!notificationsOpen);
-                setProfileOpen(false);
-                refreshInbox();
-              }}
-              className="p-1.5 text-zinc-300 hover:text-white transition-colors relative focus:outline-none mt-1 group"
-              aria-label="Notificações"
-            >
-              <Bell className="w-6 h-6 stroke-[2.2] group-hover:scale-110 transition-transform" />
-              {inbox.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-[#E50914] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-zinc-950 shadow-lg animate-pulse select-none">
-                  {inbox.length}
-                </span>
-              )}
-            </button>
-
-            {/* Netflix Notification Dropdown Menu */}
-            {notificationsOpen && (
-              <div className="absolute top-11 right-0 w-80 md:w-96 bg-[#141414]/98 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl z-50 animate-scale-up">
-                <div className="flex justify-between items-center px-4 py-3 border-b border-zinc-800/80 bg-zinc-950/60">
-                  <div className="flex items-center space-x-2">
-                    <h4 className="font-extrabold text-white text-base tracking-wide">Notificações</h4>
-                    {inbox.length > 0 && (
-                      <span className="bg-[#E50914] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
-                        {inbox.length}
-                      </span>
-                    )}
-                  </div>
-                  {inbox.length > 0 && (
-                    <button 
-                      onClick={handleClearAllNotifications}
-                      className="text-xs text-zinc-400 hover:text-red-500 font-semibold transition-colors"
-                    >
-                      Marcar todas como lidas
-                    </button>
-                  )}
-                </div>
-
-                <ul className="max-h-80 overflow-y-auto divide-y divide-zinc-900/60 no-scrollbar">
-                  {inbox.length === 0 ? (
-                    <li className="p-8 text-center text-sm text-zinc-500 font-semibold flex flex-col items-center justify-center space-y-2">
-                      <Bell className="w-8 h-8 text-zinc-700" />
-                      <span>Sua central de notificações está em dia!</span>
-                    </li>
-                  ) : (
-                    inbox.map(item => (
-                      <li 
-                        key={item.uniqueId} 
-                        onClick={(e) => handleNotificationItemClick(e, item)}
-                        className="flex items-center p-3 hover:bg-zinc-900/80 transition-colors cursor-pointer group relative"
-                      >
-                        {/* Thumbnail */}
-                        {item.image && (
-                          <div className="relative w-16 h-20 md:w-20 md:h-12 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-800/80 flex-shrink-0 mr-3 shadow-md">
-                            <img 
-                              src={item.image} 
-                              alt={item.title} 
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              loading="lazy"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                          </div>
-                        )}
-
-                        {/* Content Body */}
-                        <div className="flex-1 min-w-0 pr-2">
-                          <div className="flex items-center space-x-1.5 mb-0.5">
-                            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded text-white ${item.badgeColor || 'bg-[#E50914]'}`}>
-                              {item.tag || 'Novo'}
-                            </span>
-                            <span className="text-[10px] text-zinc-400 font-medium">{item.timeAgo || 'Hoje'}</span>
-                          </div>
-                          <h5 className="text-xs font-bold text-white leading-tight truncate group-hover:text-[#E50914] transition-colors">
-                            {item.title}
-                          </h5>
-                          <p className="text-[11px] text-zinc-400 truncate mt-0.5 font-medium">
-                            {item.subtitle}
-                          </p>
-                        </div>
-
-                        {/* Clear notification item */}
-                        <button 
-                          onClick={(e) => handleClearNotification(e, item.uniqueId)}
-                          className="p-1 text-zinc-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Remover"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </li>
-                    ))
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Profile options */}
-          <div className="relative hidden xl:block" ref={profileRef}>
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                setProfileOpen(!profileOpen);
-                setNotificationsOpen(false);
-              }}
-              className="flex items-center space-x-2 text-zinc-300 hover:text-white transition-colors focus:outline-none mt-0.5"
-              aria-label="Perfil"
-            >
-              {activeProfile ? (
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-zinc-700/60 hover:border-zinc-300 transition-all select-none">
-                  <img src={activeProfile.avatar} alt={activeProfile.name} className="w-full h-full object-cover" />
-                </div>
-              ) : (
-                <UserCircle className="w-6 h-6 stroke-[2.2]" />
-              )}
-            </button>
-
-            {profileOpen && (
-              <div className="absolute top-10 right-0 w-52 bg-zinc-950/95 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden py-1 backdrop-blur-md z-50">
-                <button 
-                  onClick={() => { setProfileOpen(false); onClearList(); }}
-                  className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-white flex items-center transition-colors font-medium border-b border-zinc-900/40"
-                >
-                  <Trash2 className="w-4 h-4 mr-3 text-zinc-500" />
-                  Limpar Minha Lista
-                </button>
-                <button 
-                  onClick={() => { setProfileOpen(false); onClearHistory(); }}
-                  className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-white flex items-center transition-colors font-medium border-b border-zinc-900/40"
-                >
-                  <History className="w-4 h-4 mr-3 text-zinc-500" />
-                  Limpar Histórico
-                </button>
-                <button 
-                  onClick={() => { setProfileOpen(false); setActiveTab('historico'); }}
-                  className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-white flex items-center transition-colors font-medium border-b border-zinc-900/40"
-                >
-                  <History className="w-4 h-4 mr-3 text-zinc-500" />
-                  Meu Histórico
-                </button>
-                <button 
-                  onClick={() => { setProfileOpen(false); onChangeProfile(); }}
-                  className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-900/60 hover:text-white flex items-center transition-colors font-medium border-b border-zinc-900/40"
-                >
-                  <Users className="w-4 h-4 mr-3 text-zinc-500" />
-                  Trocar Perfil
-                </button>
-                <button 
-                  onClick={() => { setProfileOpen(false); onLogout(); }}
-                  className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-500/10 flex items-center transition-colors font-semibold"
-                >
-                  <LogOut className="w-4 h-4 mr-3" />
-                  Deslogar da Sessão
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Hamburger button for mobile */}
-          <button 
-            onClick={() => setMobileMenuOpen(true)}
-            className="xl:hidden p-1 text-zinc-300 hover:text-white transition-colors focus:outline-none"
-            aria-label="Menu"
-          >
-            <Menu className="w-7 h-7" />
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Menu Panel Drawer */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[100] xl:hidden flex">
-          {/* Overlay backdrop */}
-          <div 
-            onClick={() => setMobileMenuOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-          ></div>
-          
-          <div className="absolute top-0 right-0 h-full w-72 max-w-[80vw] bg-zinc-950 border-l border-zinc-800/80 shadow-2xl flex flex-col z-10 transition-transform">
-            <div className="flex justify-between items-center p-4 border-b border-zinc-900">
-              <h3 className="text-xl font-black text-white">Menu</h3>
-              <button 
-                onClick={() => setMobileMenuOpen(false)}
-                className="p-1 text-zinc-400 hover:text-white focus:outline-none"
-                aria-label="Fechar"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-              {navItems.map(item => {
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full text-left font-semibold text-lg p-3 rounded-xl flex items-center transition-all ${
-                      isActive 
-                        ? 'bg-white text-black font-extrabold shadow-md' 
-                        : 'text-zinc-300 hover:bg-zinc-900/60 hover:text-white'
-                    }`}
-                  >
-                    {item.icon}
-                    <span className={item.icon ? 'ml-1' : ''}>{item.name}</span>
-                  </button>
-                );
-              })}
-              
-              <hr className="border-zinc-900 my-4" />
-              
-              {activeProfile && (
-                <div className="flex items-center px-3 py-4 border-b border-zinc-900/40 mb-2 select-none">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-zinc-700/60 mr-3 flex-shrink-0">
-                    <img src={activeProfile.avatar} alt={activeProfile.name} className="w-full h-full object-cover animate-fade-in" />
-                  </div>
-                  <div className="min-w-0">
-                    <h5 className="font-bold text-white text-base leading-none truncate">{activeProfile.name}</h5>
-                    <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mt-1 block">Perfil Ativo</span>
-                  </div>
-                </div>
-              )}
-
-              <h4 className="text-zinc-500 text-xs font-bold px-3 pb-2 uppercase tracking-wider">Configurações</h4>
-              <button 
-                onClick={() => { setMobileMenuOpen(false); onClearList(); }}
-                className="w-full text-left p-3 rounded-xl hover:bg-zinc-900/60 text-zinc-300 flex items-center text-base font-medium transition-colors"
-              >
-                <Trash2 className="w-5 h-5 mr-3 text-zinc-500" />
-                Limpar Minha Lista
-              </button>
-              <button 
-                onClick={() => { setMobileMenuOpen(false); onClearHistory(); }}
-                className="w-full text-left p-3 rounded-xl hover:bg-zinc-900/60 text-zinc-300 flex items-center text-base font-medium transition-colors"
-              >
-                <History className="w-5 h-5 mr-3 text-zinc-500" />
-                Limpar Histórico
-              </button>
-              <button 
-                onClick={() => { setMobileMenuOpen(false); setActiveTab('historico'); }}
-                className="w-full text-left p-3 rounded-xl hover:bg-zinc-900/60 text-zinc-300 flex items-center text-base font-medium transition-colors"
-              >
-                <History className="w-5 h-5 mr-3 text-zinc-500" />
-                Meu Histórico
-              </button>
-              <button 
-                onClick={() => { setMobileMenuOpen(false); onChangeProfile(); }}
-                className="w-full text-left p-3 rounded-xl hover:bg-zinc-900/60 text-zinc-300 flex items-center text-base font-medium transition-colors"
-              >
-                <Users className="w-5 h-5 mr-3 text-zinc-500" />
-                Trocar Perfil
-              </button>
-              <button 
-                onClick={() => { setMobileMenuOpen(false); onLogout(); }}
-                className="w-full text-left p-3 rounded-xl hover:bg-red-500/10 text-red-500 flex items-center text-base font-bold transition-colors"
-              >
-                <LogOut className="w-5 h-5 mr-3" />
-                Deslogar da Sessão
-              </button>
-            </nav>
-          </div>
-        </div>
-      )}
-
-      {/* Floating Toast Notification */}
-      <div 
-        className={`fixed bottom-6 left-6 z-[100] w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl transition-all duration-300 transform ${
-          showToast ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95 pointer-events-none'
-        }`}
-      >
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center">
-            <div className="p-2.5 bg-red-500/15 rounded-xl mr-3 flex items-center justify-center">
-              <Bell className="w-5 h-5 text-red-500 animate-bounce" />
-            </div>
-            <span className="text-sm font-medium text-zinc-200">{toastMessage}</span>
-          </div>
-          <button 
-            onClick={() => setShowToast(false)}
-            className="p-1 text-zinc-500 hover:text-white transition-colors focus:outline-none"
-            aria-label="Fechar"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          )}
         </div>
       </div>
-    </>
+    </nav>
   );
 }

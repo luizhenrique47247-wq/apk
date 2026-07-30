@@ -1,0 +1,19 @@
+# Android / Gradle
+*.iml
+.gradle/
+local.properties
+.idea/
+*.apk
+*.aab
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.jks
+*.keystore
+
+# Web / Node
+web/node_modules/
+web/dist/
+web/.vite/
+*.log

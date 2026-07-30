@@ -1,0 +1,128 @@
+export const categories = {
+    default: [
+        { title: "Em Alta Hoje", endpoint: "/trending/all/day" },
+        { title: "Últimos Assistidos", endpoint: "localstorage" }, 
+        { title: "Séries Aclamadas pela Crítica", endpoint: "/tv/top_rated?vote_count.gte=1000" }, 
+        { title: "Filmes de Terror", endpoint: "/discover/movie?with_genres=27" },
+        { title: "Filmes Suspense", endpoint: "/discover/movie?with_genres=53" }, 
+        { title: "Filmes Populares", endpoint: "/movie/popular" },
+        { title: "Documentários", endpoint: "/discover/movie?with_genres=99" },
+        { title: "Originais Netflix", endpoint: "/discover/tv?with_networks=213&language=pt-BR" }, 
+        { title: "Originais Prime Video", endpoint: "/discover/tv?with_networks=1024&language=pt-BR" }, 
+        { title: "Originais Max", endpoint: "/discover/tv?with_networks=49&language=pt-BR" }, 
+        { title: "Originais Paramount+", endpoint: "/discover/tv?with_networks=4330&language=pt-BR" },
+        { title: "Originais Globoplay", endpoint: "/discover/tv?with_networks=3290&language=pt-BR" }, 
+        { title: "Originais Disney+", endpoint: "/discover/tv?with_networks=2739&language=pt-BR" }, 
+        { title: "Originais Apple TV+", endpoint: "/discover/tv?with_networks=2552&language=pt-BR" }, 
+        { title: "Filmes Brasileiros", endpoint: "/discover/movie?with_origin_country=BR&sort_by=popularity.desc" },
+    ],
+    tv: [
+        { title: "Top 10 Séries no Brasil Hoje", endpoint: "/trending/tv/day", isTop10: true },
+        { title: "Séries Aclamadas pela Crítica", endpoint: "/tv/top_rated?vote_count.gte=300" }, 
+        { title: "Séries Populares", endpoint: "/tv/popular" },
+        { title: "Séries de Suspense & Crime", endpoint: "/discover/tv?with_genres=80" }, 
+        { title: "Documentários True Crime", endpoint: "/discover/tv?with_genres=99,80&sort_by=popularity.desc" },
+        { title: "Originais Netflix", endpoint: "/discover/tv?with_networks=213&language=pt-BR" }, 
+        { title: "Originais Prime Video", endpoint: "/discover/tv?with_networks=1024&language=pt-BR" }, 
+        { title: "Originais Max", endpoint: "/discover/tv?with_networks=49&language=pt-BR" }, 
+        { title: "Originais Paramount+", endpoint: "/discover/tv?with_networks=4330&language=pt-BR" },
+        { title: "Originais Globoplay", endpoint: "/discover/tv?with_networks=3290&language=pt-BR" }, 
+        { title: "Originais Disney+", endpoint: "/discover/tv?with_networks=2739&language=pt-BR" }, 
+        { title: "Originais Apple TV+", endpoint: "/discover/tv?with_networks=2552&language=pt-BR" }, 
+        { title: "Séries Brasileiras", endpoint: "/discover/tv?with_origin_country=BR&sort_by=popularity.desc" }
+    ],
+    movie: [
+        { title: "Top 10 Filmes no Brasil Hoje", endpoint: "/trending/movie/day", isTop10: true },
+        { title: "Filmes Aclamados pela Crítica", endpoint: "/movie/top_rated?vote_count.gte=1000" },
+        { title: "Filmes Populares", endpoint: "/movie/popular" },
+        { title: "Filmes de Terror", endpoint: "/discover/movie?with_genres=27" },
+        { title: "Filmes de Suspense", endpoint: "/discover/movie?with_genres=53" },
+        { title: "Documentários", endpoint: "/discover/movie?with_genres=99" },
+        { title: "Originais Netflix", endpoint: "/discover/movie?with_watch_providers=8&watch_region=BR" },
+        { title: "Originais Prime Video", endpoint: "/discover/movie?with_watch_providers=9&watch_region=BR" },
+        { title: "Originais Max", endpoint: "/discover/movie?with_watch_providers=1899&watch_region=BR" },
+        { title: "Originais Paramount+", endpoint: "/discover/movie?with_watch_providers=531&watch_region=BR" },
+        { title: "Originais Globoplay", endpoint: "/discover/movie?with_watch_providers=307&watch_region=BR" },
+        { title: "Originais Disney+", endpoint: "/discover/movie?with_watch_providers=337&watch_region=BR" },
+        { title: "Originais Apple TV+", endpoint: "/discover/movie?with_watch_providers=350&watch_region=BR" },
+        { title: "Filmes Brasileiros", endpoint: "/discover/movie?with_origin_country=BR&sort_by=popularity.desc" }
+    ],
+    anime: [
+        { title: "Top 10 Animes no Brasil Hoje", endpoint: "/discover/tv?with_genres=16&with_keywords=210024&sort_by=popularity.desc", isTop10: true },
+        { title: "Animes Shonen & Ação", endpoint: "/discover/tv?with_genres=16,10759&with_keywords=210024" },
+        { title: "Animes Aclamados pela Crítica", endpoint: "/discover/tv?with_genres=16&with_keywords=210024&sort_by=vote_average.desc&vote_count.gte=200" },
+        { title: "Isekai & Fantasia", endpoint: "/discover/tv?with_genres=16,10765&with_keywords=210024" },
+        { title: "Animes de Terror & Obscuro", endpoint: "/discover/tv?with_genres=16,9648&with_keywords=210024" },
+        { title: "Romance & Slice of Life", endpoint: "/discover/tv?with_genres=16,35&with_keywords=210024" },
+        { title: "Filmes de Anime", endpoint: "/discover/movie?with_genres=16&with_keywords=210024" }
+    ]
+};
+
+export const movieFilters = [
+    { name: "Todos os Gêneros", type: "genre", value: "" },
+    { name: "Ação e Aventura", type: "genre", value: "28,12" },
+    { name: "Animação", type: "genre", value: "16" },
+    { name: "Comédia", type: "genre", value: "35" },
+    { name: "Criminal", type: "genre", value: "80" },
+    { name: "Suspense", type: "genre", value: "53" },
+    { name: "Terror", type: "genre", value: "27" },
+    { name: "Drama", type: "genre", value: "18" },
+    { name: "Romance", type: "genre", value: "10749" },
+    { name: "Ficção-Científica e Fantasia", type: "genre", value: "878,14" },
+    { name: "Mistério", type: "genre", value: "9648" },
+    { name: "Policial", type: "genre", value: "80" }, 
+    { name: "Disney e Pixar", type: "company", value: "2|3" },
+    { name: "Brasileiros", type: "country", value: "BR" },
+    { name: "Clássicos (até 1990)", type: "era_movie", value: "1990-12-31" },
+    { name: "Premiados Oscar", type: "keyword", value: "9715", style: "award" }, 
+    { name: "Divisoria", type: "divider" },
+    { name: "Netflix", type: "provider", value: "8" },
+    { name: "Prime Video", type: "provider", value: "9" },
+    { name: "Max", type: "provider", value: "1899" },
+    { name: "Paramount+", type: "provider", value: "531" },
+    { name: "Globoplay", type: "provider", value: "307" },
+    { name: "Disney+", type: "provider", value: "337" },
+    { name: "Apple TV+", type: "provider", value: "350" },
+];
+
+export const tvFilters = [
+    { name: "Todos os Gêneros", type: "genre", value: "" },
+    { name: "Ação e Aventura", type: "genre", value: "10759" },
+    { name: "Animação", type: "genre", value: "16" },
+    { name: "Comédia", type: "genre", value: "35" },
+    { name: "Criminal", type: "genre", value: "80" },
+    { name: "Suspense", type: "genre", value: "9648" },
+    { name: "Terror", type: "genre", value: "9648" },
+    { name: "Drama", type: "genre", value: "18" },
+    { name: "Romance", type: "genre", value: "18" },
+    { name: "Ficção-Científica e Fantasia", type: "genre", value: "10765" },
+    { name: "Mistério", type: "genre", value: "9648" },
+    { name: "Policial", type: "genre", value: "80" }, 
+    { name: "Disney e Pixar", type: "company", value: "2|3" },
+    { name: "Brasileiros", type: "country", value: "BR" },
+    { name: "Clássicos (até 1990)", type: "era_tv", value: "1990-12-31" },
+    { name: "Premiados Emmy", type: "keyword", value: "11961", style: "award" }, 
+    { name: "Divisoria", type: "divider" },
+    { name: "Netflix", type: "provider", value: "8" },
+    { name: "Prime Video", type: "provider", value: "9" },
+    { name: "Max", type: "provider", value: "1899" },
+    { name: "Paramount+", type: "provider", value: "531" },
+    { name: "Globoplay", type: "provider", value: "307" },
+    { name: "Disney+", type: "provider", value: "337" },
+    { name: "Apple TV+", type: "provider", value: "350" },
+];
+
+export const sortByOptions = {
+    movie: [
+        { name: 'Mais Populares', value: 'popularity.desc' },
+        { name: 'Melhores Avaliados', value: 'vote_average.desc' },
+        { name: 'Mais Recentes', value: 'primary_release_date.desc' },
+        { name: 'Ordem Alfabética (A-Z)', value: 'original_title.asc' }
+    ],
+    tv: [ 
+        { name: 'Mais Populares', value: 'popularity.desc' },
+        { name: 'Melhores Avaliados', value: 'vote_average.desc' },
+        { name: 'Mais Recentes', value: 'first_air_date.desc' },
+        { name: 'Ordem Alfabética (A-Z)', value: 'name.asc' }
+    ]
+};

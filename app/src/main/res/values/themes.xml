@@ -1,0 +1,9 @@
+<resources>
+    <!-- Tema sem ActionBar, tela preta — ideal para projetor/TV -->
+    <style name="Theme.FudidoFlix" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:navigationBarColor">@android:color/black</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

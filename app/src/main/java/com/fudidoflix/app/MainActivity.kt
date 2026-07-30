@@ -11,6 +11,20 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
 
+    // Domínios dos players de streaming — qualquer URL desses vai para o PlayerActivity blindado
+    private val playerDomains = listOf(
+        "autoembedhd",
+        "viewplayer",
+        "warezcdn",
+        "superflixapi",
+        "embedder",
+        "player.videasy",
+        "embed.smashystream",
+        "multiembed.mov",
+        "vidsrc",
+        "embedsito"
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,13 +49,31 @@ class MainActivity : AppCompatActivity() {
         settings.loadWithOverviewMode = true
         settings.setSupportZoom(false)
         settings.builtInZoomControls = false
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
         // Adiciona interface JavaScript para o React poder abrir o PlayerActivity
         webView.addJavascriptInterface(PlayerBridge(this), "AndroidPlayer")
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-                // Mantém toda navegação dentro do app
+                val url = request.url.toString()
+                val scheme = request.url.scheme ?: return true
+
+                // Bloqueia qualquer esquema que não seja http, https ou file
+                // Isso mata os redirecionamentos intent://, market://, etc.
+                if (scheme != "http" && scheme != "https" && scheme != "file") {
+                    return true // bloqueia silenciosamente
+                }
+
+                // Se a URL for de um player de streaming, abre no PlayerActivity blindado
+                if (playerDomains.any { url.contains(it, ignoreCase = true) }) {
+                    val intent = Intent(this@MainActivity, PlayerActivity::class.java)
+                    intent.putExtra("PLAYER_URL", url)
+                    startActivity(intent)
+                    return true
+                }
+
+                // Tudo mais carrega normalmente no app
                 return false
             }
         }

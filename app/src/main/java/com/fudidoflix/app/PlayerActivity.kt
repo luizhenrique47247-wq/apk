@@ -172,6 +172,11 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                val scheme = request.url.scheme ?: return true
+                // Bloqueia intent://, market://, javascript:// e qualquer esquema incomum
+                if (scheme != "http" && scheme != "https") {
+                    return true
+                }
                 return false
             }
         }
